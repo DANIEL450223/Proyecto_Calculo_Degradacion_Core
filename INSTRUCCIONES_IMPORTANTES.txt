@@ -1,0 +1,11 @@
+1. Si el cliente sale incompatible en Visual Studio, corre el frontend por terminal:
+   npm install
+   npm run dev
+
+2. Si el login daba 400, ya quedó corregido usando DTOs.
+
+3. Antes de probar frontend:
+   - registrar usuario en la web o Swagger
+   - iniciar sesión
+
+4. Si no cargan módulos, deja corriendo backend y frontend al mismo tiempo.
