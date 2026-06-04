@@ -14,7 +14,7 @@ builder.Services.AddCors(options =>
                 "http://localhost:5174",
                 "https://localhost:5173",
                 "https://localhost:5174",
-                "https://TU-FRONTEND.vercel.app"
+                "https://proyecto-calculo-degradacion-core.vercel.app/"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
