@@ -14,7 +14,7 @@ builder.Services.AddCors(options =>
                 "http://localhost:5174",
                 "https://localhost:5173",
                 "https://localhost:5174",
-                "https://proyecto-calculo-degradacion-core.vercel.app/"
+                "https://proyecto-calculo-degradacion-core.vercel.app"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
@@ -40,11 +40,8 @@ app.UseStaticFiles();
 
 app.UseCors("PermitirFrontend");
 
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
