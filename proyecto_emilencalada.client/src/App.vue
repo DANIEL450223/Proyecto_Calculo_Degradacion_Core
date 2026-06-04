@@ -302,12 +302,12 @@
             usuario: true,
             campos: [
               { key: 'nombre', label: 'Nombre', tipo: 'text', placeholder: 'Nombre del equipo' },
-              { key: 'tipo', label: 'Tipo', tipo: 'text', placeholder: 'Laptop, Servidor, Impresora...' },
+              { key: 'tipo', label: 'Tipo', tipo: 'select', fuente: 'tiposEquipo' },
               { key: 'marca', label: 'Marca', tipo: 'text', placeholder: 'Marca del equipo' },
               { key: 'fechaCompra', label: 'Fecha de compra', tipo: 'date', placeholder: '' },
               { key: 'costoInicial', label: 'Costo inicial', tipo: 'number', placeholder: 'Costo inicial' },
               { key: 'vidaUtilMeses', label: 'Vida útil en meses', tipo: 'number', placeholder: 'Vida útil' },
-              { key: 'estado', label: 'Estado', tipo: 'text', placeholder: 'Activo, Regular, Deteriorado...' },
+              { key: 'estado', label: 'Estado', tipo: 'select', fuente: 'estadosEquipo' },
               { key: 'departamentoId', label: 'Departamento', tipo: 'select', fuente: 'departamentos' }
             ],
             columnas: [
@@ -504,6 +504,29 @@
           ]
         }
 
+        if (campo.fuente === 'tiposEquipo') {
+          return [
+            { valor: 'Laptop', texto: 'Laptop' },
+            { valor: 'Portatil', texto: 'Portátil' },
+            { valor: 'Escritorio', texto: 'Escritorio' },
+            { valor: 'PC', texto: 'PC' },
+            { valor: 'Impresora', texto: 'Impresora' },
+            { valor: 'Servidor', texto: 'Servidor' },
+            { valor: 'Televisor', texto: 'Televisor' },
+            { valor: 'Electronico', texto: 'Electrónico' }
+          ]
+        }
+
+        if (campo.fuente === 'estadosEquipo') {
+          return [
+            { valor: 'Activo', texto: 'Activo' },
+            { valor: 'Regular', texto: 'Regular' },
+            { valor: 'Deteriorado', texto: 'Deteriorado' },
+            { valor: 'Crítico', texto: 'Crítico' },
+            { valor: 'Danado', texto: 'Dañado' }
+          ]
+        }
+
         return []
       },
 
@@ -583,12 +606,12 @@
           ],
           equipos: [
             [!data.nombre, 'Debe ingresar el nombre del equipo'],
-            [!data.tipo, 'Debe ingresar el tipo de equipo'],
+            [!data.tipo, 'Debe seleccionar el tipo de equipo'],
             [!data.marca, 'Debe ingresar la marca del equipo'],
             [!data.fechaCompra, 'Debe seleccionar la fecha de compra'],
             [Number(data.costoInicial) <= 0, 'El costo inicial debe ser mayor a cero'],
             [Number(data.vidaUtilMeses) <= 0, 'La vida útil debe ser mayor a cero'],
-            [!data.estado, 'Debe ingresar el estado del equipo'],
+            [!data.estado, 'Debe seleccionar el estado del equipo'],
             [!data.departamentoId, 'Debe seleccionar un departamento']
           ],
           reparaciones: [
