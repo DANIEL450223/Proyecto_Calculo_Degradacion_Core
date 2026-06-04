@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Proyecto_EmilEncalada.Server.Models
 {
@@ -12,6 +13,7 @@ namespace Proyecto_EmilEncalada.Server.Models
         [Range(0.01, 100000000)]
         public decimal PresupuestoAsignado { get; set; }
 
+        [JsonIgnore]
         public ICollection<Equipo> Equipos { get; set; } = new List<Equipo>();
     }
-}
+}   

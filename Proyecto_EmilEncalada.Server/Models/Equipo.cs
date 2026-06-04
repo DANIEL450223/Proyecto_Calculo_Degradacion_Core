@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Proyecto_EmilEncalada.Server.Models
 {
@@ -20,6 +21,7 @@ namespace Proyecto_EmilEncalada.Server.Models
         public string Marca { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La fecha de compra es obligatoria.")]
+        [Column(TypeName = "date")]
         public DateTime FechaCompra { get; set; }
 
         [Range(0.01, 100000000, ErrorMessage = "El costo inicial debe ser mayor a cero.")]
@@ -38,6 +40,7 @@ namespace Proyecto_EmilEncalada.Server.Models
 
         public Departamento? Departamento { get; set; }
 
+        [JsonIgnore]
         public ICollection<Reparacion> Reparaciones { get; set; } = new List<Reparacion>();
     }
 }

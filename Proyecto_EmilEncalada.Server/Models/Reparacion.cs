@@ -8,6 +8,7 @@ namespace Proyecto_EmilEncalada.Server.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "La fecha de reparación es obligatoria.")]
+        [Column(TypeName = "date")]
         public DateTime FechaReparacion { get; set; }
 
         [Required(ErrorMessage = "La descripción es obligatoria.")]
