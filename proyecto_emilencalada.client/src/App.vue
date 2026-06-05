@@ -188,6 +188,7 @@
             <li><b>Reparaciones:</b> {{ analisis.cantidadReparaciones || 0 }}</li>
             <li><b>Costo reparaciones:</b> $ {{ analisis.costoReparaciones }}</li>
             <li><b>Porcentaje reparación:</b> {{ analisis.porcentajeCostoReparacion || 0 }}%</li>
+            <li><b>Meses de degradacion por reparacion:</b> {{ analisis.restaReparacion }} meses</li>
           </ul>
         </article>
       </section>

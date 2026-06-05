@@ -30,6 +30,8 @@ namespace Proyecto_EmilEncalada.Server.Services
                 cantidadReparaciones++;
             }
 
+  
+
             decimal factorTipo = 1.0m;
             decimal factorEstado = 1.0m;
             decimal factorReparaciones = 1.0m;
@@ -133,11 +135,15 @@ namespace Proyecto_EmilEncalada.Server.Services
             if (degradacion < 0)
                 degradacion = 0;
 
+
             decimal valorActualEstimado = equipo.CostoInicial * (1 - (degradacion / 100));
             if (valorActualEstimado < 0)
                 valorActualEstimado = 0;
 
-            decimal vidaRestanteMeses = equipo.VidaUtilMeses - mesesTranscurridos;
+            decimal restaReparacion = (decimal)(cantidadReparaciones * 2.0);
+
+  
+            decimal vidaRestanteMeses = equipo.VidaUtilMeses - mesesTranscurridos - restaReparacion;
             if (vidaRestanteMeses < 0)
                 vidaRestanteMeses = 0;
 
@@ -210,7 +216,8 @@ namespace Proyecto_EmilEncalada.Server.Services
                 DegradacionPorcentaje = Math.Round(degradacion, 2),
                 NivelDegradacion = nivelDegradacion,
                 ValorActualEstimado = Math.Round(valorActualEstimado, 2),
-                Recomendacion = recomendacion
+                Recomendacion = recomendacion,
+                RestaReparacion= restaReparacion
             };
         }
     }
