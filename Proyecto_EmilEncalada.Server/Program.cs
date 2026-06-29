@@ -1,6 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Proyecto_EmilEncalada.Server.Data;
 using System.Text.Json.Serialization;
+using Proyecto_EmilEncalada.Server.Interfaces;
+using Proyecto_EmilEncalada.Server.Repositories;
+using Proyecto_EmilEncalada.Server.Strategies;
+using Proyecto_EmilEncalada.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,8 +16,16 @@ builder.Services.AddCors(options =>
             .WithOrigins(
                 "http://localhost:5173",
                 "http://localhost:5174",
+                "http://localhost:5175",
+                "http://localhost:5176",
+                "http://localhost:5177",
+                "http://localhost:5178",
                 "https://localhost:5173",
                 "https://localhost:5174",
+                "https://localhost:5175",
+                "https://localhost:5176",
+                "https://localhost:5177",
+                "https://localhost:5178",
                 "https://proyecto-calculo-degradacion-core.vercel.app"
             )
             .AllowAnyHeader()
@@ -32,6 +44,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+/*
+    Servicios aplicando buenas prácticas:
+    - Repository Pattern: IEquipoRepository / EquipoRepository
+    - Strategy Pattern: ICalculoDegradacionStrategy / CalculoDegradacionPorReglasStrategy
+    - DIP: DegradacionService depende de interfaces, no de clases concretas.
+*/
+builder.Services.AddScoped<IEquipoRepository, EquipoRepository>();
+builder.Services.AddScoped<ICalculoDegradacionStrategy, CalculoDegradacionPorReglasStrategy>();
+builder.Services.AddScoped<DegradacionService>();
 
 var app = builder.Build();
 
