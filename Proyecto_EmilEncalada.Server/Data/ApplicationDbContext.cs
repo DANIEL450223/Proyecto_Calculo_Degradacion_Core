@@ -16,6 +16,7 @@ namespace Proyecto_EmilEncalada.Server.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.HasDefaultSchema("dbo");
 
             modelBuilder.Entity<Producto>().Property(p => p.Precio).HasPrecision(10, 2);
             modelBuilder.Entity<Departamento>().Property(d => d.PresupuestoAsignado).HasPrecision(10, 2);

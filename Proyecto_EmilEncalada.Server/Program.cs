@@ -8,29 +8,34 @@ using Proyecto_EmilEncalada.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var frontendOrigins = builder.Configuration["FrontendOrigins"]?
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? [];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirFrontend", policy =>
     {
-        policy
-            .WithOrigins(
-                "http://localhost:5173",
-                "http://localhost:5174",
-                "http://localhost:5175",
-                "http://localhost:5176",
-                "http://localhost:5177",
-                "http://localhost:5178",
-                "https://localhost:5173",
-                "https://localhost:5174",
-                "https://localhost:5175",
-                "https://localhost:5176",
-                "https://localhost:5177",
-                "https://localhost:5178",
-                "https://proyecto-calculo-degradacion-core.vercel.app",
-                "https://proyecto-calculo-degradacion-core.vercel.app",
+        var origins = new[]
+        {
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:5175",
+            "http://localhost:5176",
+            "http://localhost:5177",
+            "http://localhost:5178",
+            "https://localhost:5173",
+            "https://localhost:5174",
+            "https://localhost:5175",
+            "https://localhost:5176",
+            "https://localhost:5177",
+            "https://localhost:5178",
+            "https://proyecto-calculo-degradacion-core.vercel.app",
+            "https://api-core.vercel.app"
+        }.Concat(frontendOrigins).Distinct().ToArray();
 
-                "https://api-core.vercel.app"
-            )
+        policy
+            .WithOrigins(origins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -43,7 +48,7 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -54,6 +59,8 @@ builder.Services.AddScoped<DegradacionService>();
 
 var app = builder.Build();
 
+await DatabaseBootstrapper.EnsureReadyAsync(app.Services);
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -62,7 +69,10 @@ app.UseCors("PermitirFrontend");
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthorization();
 

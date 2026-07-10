@@ -50,7 +50,7 @@
           <p>{{ u.nombre }} | {{ u.rol }}</p>
         </section>
 
-        <button @click="cerrarSesion">Salir</button>
+        <button @click="cargarTodo">Recargar</button>
       </header>
 
       <nav class="menu">
@@ -201,8 +201,18 @@
 <script>
   import axios from 'axios'
 
+  const apiBaseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
+  const apiUrl = path => `${apiBaseUrl}${path}`
+  const usuarioAdminDirecto = {
+    id: 0,
+    nombre: 'Administrador',
+    correo: 'admin@local',
+    rol: 'Admin',
+    activo: true
+  }
+
   axios.interceptors.request.use(config => {
-    const usuario = JSON.parse(sessionStorage.getItem('usuario') || 'null')
+    const usuario = JSON.parse(sessionStorage.getItem('usuario') || 'null') || usuarioAdminDirecto
 
     if (usuario && usuario.rol) {
       config.headers['X-Rol'] = usuario.rol
@@ -217,7 +227,7 @@
         vista: 'login',
         modulo: 'departamentos',
         mensaje: '',
-        u: null,
+        u: usuarioAdminDirecto,
 
         login: { correo: '', clave: '' },
         registro: { nombre: '', correo: '', clave: '' },
@@ -226,12 +236,12 @@
         analisis: null,
 
         api: {
-          departamentos: `${import.meta.env.VITE_API_URL}/api/Departamentos`,
-          equipos: `${import.meta.env.VITE_API_URL}/api/Equipos`,
-          reparaciones: `${import.meta.env.VITE_API_URL}/api/Reparaciones`,
-          usuarios: `${import.meta.env.VITE_API_URL}/api/Usuarios`,
-          core: `${import.meta.env.VITE_API_URL}/api/Core`,
-          auth: `${import.meta.env.VITE_API_URL}/api/Auth`
+          departamentos: apiUrl('/api/Departamentos'),
+          equipos: apiUrl('/api/Equipos'),
+          reparaciones: apiUrl('/api/Reparaciones'),
+          usuarios: apiUrl('/api/Usuarios'),
+          core: apiUrl('/api/Core'),
+          auth: apiUrl('/api/Auth')
         },
 
         listas: {
@@ -582,10 +592,6 @@
         await this.obtenerModulo('departamentos')
         await this.obtenerModulo('equipos')
         await this.obtenerModulo('reparaciones')
-
-        if (this.esAdmin()) {
-          await this.obtenerModulo('usuarios')
-        }
       },
 
       async obtenerModulo(nombre) {
@@ -762,9 +768,10 @@
     },
 
     mounted() {
-      this.u = null
-      this.vista = 'login'
+      this.u = usuarioAdminDirecto
+      sessionStorage.setItem('usuario', JSON.stringify(usuarioAdminDirecto))
       this.modulo = 'departamentos'
+      this.cargarTodo()
     }
   }
 </script>

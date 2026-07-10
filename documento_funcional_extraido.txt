@@ -1,0 +1,200 @@
+Universidad de las Américas 
+Asignatura: 
+Ingeniería Web  
+Integrantes: 
+Emil Encalda, Jorge Ramos 
+Fecha: 09/07/2026 
+Descripción general del proyecto
+El Sistema de Análisis de Degradación de Equipos TI es una aplicación desarrollada con ASP.NET Core, PostgreSQL, y una arquitectura en capas (Controllers, Services, Strategies, Repositories, Interfaces y DTOs), acompañada de un frontend externo en React. El sistema permite administrar productos, departamentos, equipos y reparaciones, además de calcular el nivel de degradación de cada equipo, su valor económico actual estimado y generar una recomendación de mantenimiento o reemplazo.
+El proyecto fue desarrollado inicialmente como un Core MVC de administración de equipos TI, con CRUD de productos, departamentos, equipos y reparaciones, además de login y registro de usuarios. Para esta entrega integradora se realizó una mejora sobre el mismo sistema: se aplicó el patrón de diseño Strategy para el cálculo de degradación (ICalculoDegradacionStrategy y CalculoDegradacionPorReglasStrategy), se separaron responsabilidades mediante Services y Repositories, se expuso un endpoint de API en formato JSON (/api/Core/degradacion/{id}) y se desarrolló una aplicación React externa que consume ese endpoint mediante Axios para mostrar el cálculo individual y un análisis avanzado de escenarios.
+La finalidad principal del sistema es ayudar a una organización a tomar decisiones sobre sus equipos tecnológicos: identificar cuáles equipos están más degradados, cuánto valor conservan, cuántas reparaciones acumulan y si conviene mantenerlos en operación, darles mantenimiento preventivo o planificar su reemplazo.
+Backend: API ASP.NET Core en capas (Controllers, Services, Strategies, Repositories), desplegada en Render.
+Frontend: React con Vite, Bootstrap, Axios y React Router.
+Core: cálculo de degradación de equipos tecnológicos aplicando el patrón de diseño Strategy.
+Resultado: visualización del análisis individual y comparación avanzada de escenarios.
+Roles principales del sistema
+Explicación Core 
+Muchas empresas siguen usando o reemplazando equipos tecnológicos sin un criterio técnico claro, basándose solo en la percepción visual o en la antigüedad del equipo, sin considerar de forma conjunta su costo original, su historial real de reparaciones y su vida útil restante.
+En la primera versión del proyecto (Core MVC de administración de equipos TI) sí existían los módulos funcionales de productos, departamentos, equipos y reparaciones, pero el diseño del código todavía podía mejorar para ser más mantenible, extensible e integrable con otros aplicativos:
+La lógica de cálculo de degradación podía terminar concentrada directamente en el controlador, mezclando acceso a datos y reglas de negocio.
+La evaluación del nivel de degradación y de la recomendación dependía de condicionales dispersos, lo que hacía difícil extender o cambiar la fórmula sin tocar el resto del sistema.
+El Core funcionaba principalmente mediante vistas MVC y no estaba expuesto como API JSON reutilizable por otros clientes.
+No existía un aplicativo externo en un framework JavaScript que consumiera los datos del Core.
+Se necesitaba aplicar buenas prácticas de diseño, principios SOLID y patrones de diseño para fortalecer el proyecto.
+Para esta entrega integradora se resolvió esto separando responsabilidades en capas: EquipoRepository se encarga del acceso a datos, CalculoDegradacionPorReglasStrategy concentra únicamente la lógica de cálculo (aplicando el patrón Strategy a través de la interfaz ICalculoDegradacionStrategy), y DegradacionService coordina ambos y expone el resultado a través de CoreController, que ahora sí publica un endpoint API JSON (/api/Core/degradacion/{id}) consumible por cualquier cliente externo, como el aplicativo React desarrollado para esta entrega.
+Funcionalidad completa del proyecto
+Módulo de autenticación
+El sistema permite registrar usuarios e iniciar sesión mediante el AuthController (/api/Auth/registrar y /api/Auth/login). El registro valida que el nombre, correo y contraseña estén presentes, que el correo no esté ya registrado, y asigna el rol Usuario por defecto (solo un usuario ya autenticado como Admin puede registrar a otro Admin). El login valida las credenciales y verifica que el usuario esté activo antes de permitir el acceso.
+Módulo administrativo
+Gestión de productos: nombre, precio y stock.
+Gestión de departamentos: nombre y presupuesto asignado (debe ser mayor a cero).
+Gestión de equipos: nombre, tipo, marca, fecha de compra (no futura), costo inicial (mayor a cero), vida útil en meses, estado y departamento asignado.
+Gestión de reparaciones: fecha de reparación (no futura), descripción, costo (mayor a cero) y equipo asignado.
+Cada equipo y cada reparación se relacionan mediante dropdowns con su departamento o equipo correspondiente.
+Módulo del usuario y del Core de degradación
+Consulta de equipo: el usuario ingresa el ID de un equipo y obtiene, a través del endpoint /api/Core/degradacion/{id}, su antigüedad, vida útil, vida restante, costo inicial, cantidad y costo de reparaciones, porcentaje de degradación, nivel de degradación (baja, media, alta o crítica), valor actual estimado y recomendación generada por el Core.
+Cálculo individual (React): muestra los datos anteriores junto con un índice de riesgo complementario calculado en el frontend y una barra visual de degradación.
+Análisis avanzado (React): genera una matriz de escenarios a 12 meses (mantener sin acción, mantenimiento preventivo, reemplazo planificado), calculando degradación proyectada, valor proyectado, costo total estimado, prioridad y una conclusión técnica sobre el mejor escenario.
+Funcionalidad del core y restricciones
+Funcionalidad del core
+El Core de degradación es la parte más importante del sistema. Su función es tomar los datos reales de un equipo y su historial de reparaciones, y calcular de forma objetiva qué tan degradado está, cuánto vale actualmente y qué se recomienda hacer con él.
+El usuario (o el aplicativo React) envía el ID del equipo al endpoint GET /api/Core/degradacion/{id}.
+El CoreController delega la solicitud al DegradacionService.
+El DegradacionService pide al EquipoRepository el equipo correspondiente, incluyendo su departamento.
+El EquipoRepository pide también todas las reparaciones asociadas a ese equipo.
+Si la base de datos no responde, el repositorio devuelve un equipo y reparaciones de respaldo (solo para el ID 1) para que el Core pueda seguir funcionando en la demostración.
+Si el equipo no existe, el CoreController devuelve un 404 con un mensaje explicativo.
+El DegradacionService entrega el equipo y sus reparaciones a la Strategy de cálculo (CalculoDegradacionPorReglasStrategy), inyectada mediante la interfaz ICalculoDegradacionStrategy.
+La Strategy calcula el porcentaje de uso según los meses transcurridos y la vida útil, y aplica factores según el tipo de equipo, su estado y la cantidad de reparaciones.
+Se suma un ajuste adicional según qué tan alto es el costo acumulado de reparaciones respecto al costo inicial.
+Con el porcentaje final de degradación se determina el nivel (baja, media, alta o crítica), el valor actual estimado y una recomendación textual.
+El resultado se devuelve como JSON al cliente que consultó el endpoint.
+El aplicativo React usa ese mismo resultado para calcular un índice de riesgo complementario y, en la vista de análisis avanzado, para proyectar escenarios a 12 meses.
+Restricciones
+El equipo debe existir y tener una fecha de compra y una vida útil en meses registradas para que el cálculo sea válido.
+El nivel de degradación y la recomendación dependen únicamente de reglas fijas definidas en la Strategy (tipo de equipo, estado, cantidad de reparaciones y costo acumulado de reparaciones); no se usa inteligencia artificial externa.
+Si la base de datos no responde, el Core solo puede calcular con datos reales para el equipo con ID 1, ya que es el único que cuenta con datos de respaldo.
+El API depende del backend ASP.NET Core desplegado en Render; el frontend React consume los datos por HTTP en formato JSON usando Axios.
+La calidad del resultado depende de que los datos del equipo y sus reparaciones estén completos y actualizados en la base de datos.
+Alcance y limitaciones
+Alternativas de solución y selección
+Alternativa 1: Mantener el MVC original y agregar solo el API
+Esta opción consistía en conservar la lógica del cálculo de degradación dentro del controlador y agregar únicamente el endpoint JSON para que React pudiera consumir los datos. Era una solución más rápida, pero mantenía los problemas de diseño original.
+Ventajas: menor tiempo de desarrollo y menos cambios sobre el proyecto original.
+Desventajas: el controlador seguiría concentrando demasiada lógica; el código seguiría siendo difícil de extender o de probar; no se aplicarían correctamente los principios SOLID ni patrones de diseño.
+Alternativa 2: Refactorizar el core con SOLID, patrón Strategy, Repository, API y React
+Esta opción reorganiza el Core del sistema separando el acceso a datos (EquipoRepository), la lógica de cálculo (CalculoDegradacionPorReglasStrategy a través de ICalculoDegradacionStrategy) y la coordinación (DegradacionService). También expone un API JSON (/api/Core/degradacion/{id}) y permite que una aplicación React externa consuma el resultado y genere análisis adicional. Es la solución seleccionada porque mejora el proyecto de manera integral.
+Ventajas: mejor separación de responsabilidades, mejor mantenibilidad, aplicación real de SOLID (especialmente responsabilidad única e inversión de dependencias), uso del patrón Strategy, Core reutilizable y expuesto como API para cualquier cliente externo.
+Desventajas: requiere más cambios sobre el proyecto original, más pruebas y mayor comprensión técnica del equipo de desarrollo.
+Matriz de decisión
+La alternativa seleccionada es la Alternativa 2, porque resuelve los problemas del diseño inicial (lógica concentrada en el controlador, ausencia de patrones, Core no reutilizable) y cumple mejor con los requerimientos de la entrega integradora: aplicación de SOLID, patrón Strategy, API JSON y consumo desde un aplicativo React externo.
+Excelente, esto confirma exactamente qué principios y patrones documentaron ustedes mismos en el código (SRP, OCP, DIP, Repository, Strategy — sin Factory). Aquí la sección adaptada, en texto plano:
+Problemas de la implementación inicial
+Mejoras aplicadas con SOLID y patrones
+Principio SRP — Single Responsibility Principle
+Se aplicó SRP separando la lógica del cálculo en CalculoDegradacionPorReglasStrategy, el acceso a datos en EquipoRepository, y la coordinación entre ambos en DegradacionService. El CoreController queda encargado únicamente de recibir la petición HTTP y devolver la respuesta.
+Principio OCP — Open/Closed Principle
+Se aplicó OCP mediante la interfaz ICalculoDegradacionStrategy. Si se desea agregar una nueva forma de calcular la degradación (por ejemplo, una fórmula distinta para cierto tipo de equipo), se puede crear una nueva clase que implemente esa interfaz sin modificar DegradacionService ni el CoreController.
+Principio DIP — Dependency Inversion Principle
+DegradacionService no depende de clases concretas, sino de las interfaces IEquipoRepository y ICalculoDegradacionStrategy. Las implementaciones concretas (EquipoRepository y CalculoDegradacionPorReglasStrategy) se inyectan mediante el contenedor de dependencias configurado en Program.cs (AddScoped).
+Patrón Strategy
+El patrón Strategy se aplicó para definir la forma de calcular la degradación de un equipo. La estrategia concreta actual es CalculoDegradacionPorReglasStrategy, que implementa ICalculoDegradacionStrategy. El diseño permite incorporar nuevas estrategias de cálculo en el futuro sin alterar el resto del sistema.
+Patrón Repository
+El patrón Repository se aplicó mediante IEquipoRepository / EquipoRepository, que encapsula el acceso a los datos del equipo y sus reparaciones. Esto permite que el Core no dependa directamente del contexto de Entity Framework, y que en caso de fallo de la base de datos pueda entregar datos de respaldo sin afectar la lógica de cálculo.
+Estructura agregada
+Proyecto_EmilEncalada.Server/
+├── Interfaces/
+│   ├── ICalculoDegradacionStrategy.cs
+│   └── IEquipoRepository.cs
+├── Strategies/
+│   └── CalculoDegradacionPorReglasStrategy.cs
+├── Repositories/
+│   └── EquipoRepository.cs
+├── Services/
+│   ├── DegradacionService.cs
+│   └── ReglaDecision.cs
+└── Controllers/
+    └── CoreController.cs
+Diagramas del sistema
+Los siguientes diagramas representan el sistema completo: las tablas principales (Usuario, Producto, Departamento, Equipo, Reparación), las clases del Core (interfaces, Strategy, Repository, Service), el flujo de la mejora aplicando SOLID y patrones, el flujo de actividades del cálculo de degradación, y la integración entre la API JSON y el aplicativo React.
+Diagrama Entidad Relación (global) 
+A continuación, se presenta el diagrama entidad-relación global del sistema, donde se muestran las entidades principales involucradas, sus atributos y las relaciones entre ellas.
+Diagrama de Clases (global)
+A continuación, se presenta el diagrama de clases global del sistema. En este se identifican las clases principales, sus atributos, métodos y relaciones, especialmente aquellas asociadas al cálculo de degradación, presupuesto y reparaciones.
+Diagrama Casos de uso (global) 
+El siguiente diagrama de casos de uso global representa la interacción de los actores principales del sistema con las funcionalidades propuestas en la solución
+Diagrama de actividades (Core)
+El diagrama de actividades del core muestra el flujo de análisis desde la selección del equipo hasta la decisión final de reparar o reemplazar, considerando degradación, historial de reparaciones y presupuesto del departamento
+Arquitectura general 
+React consume la API mediante Axios, la API delega en el CoreController, este usa DegradacionService (que combina el patrón Strategy y el Repository) y finalmente se consulta la base de datos PostgreSQL en Render. La respuesta viaja en sentido inverso como JSON
+Este diagrama compara el diseño antes y después de aplicar SOLID y el patrón Strategy:
+API JSON propuesta e implementada
+Se implementó un API JSON en ASP.NET Core para exponer la información del Core y de los módulos administrativos. El API permite gestionar productos, departamentos, equipos y reparaciones, además de ejecutar el cálculo de degradación para un equipo específico.
+Ejemplo de respuesta JSON
+json
+{
+  "equipo": "Laptop Oficina",
+  "tipo": "Laptop",
+  "marca": "Dell",
+  "estado": "Regular",
+  "antiguedadMeses": 24.02,
+  "vidaUtilMeses": 60,
+  "vidaRestanteMeses": 35.98,
+  "costoInicial": 1000,
+  "cantidadReparaciones": 2,
+  "costoReparaciones": 250,
+  "porcentajeCostoReparacion": 25.00,
+  "degradacionPorcentaje": 58.35,
+  "nivelDegradacion": "Media",
+  "valorActualEstimado": 416.50,
+  "recomendacion": "Se recomienda dar seguimiento y planificar mantenimiento."
+}
+Aplicativo React que consume el API
+Se desarrolló un aplicativo externo con React + Vite. Este frontend consume el API del backend ASP.NET Core usando Axios y permite calcular la degradación de un equipo por ID, además de generar un análisis avanzado con matriz de escenarios.
+Consume /api/Core/degradacion/{id} desde la vista de cálculo individual (CalculoDegradacion.jsx).
+Consume el mismo endpoint desde la vista de análisis avanzado (AnalisisAvanzado.jsx) para proyectar escenarios a 12 meses.
+Muestra equipo analizado, degradación actual, índice de riesgo, valor actual, nivel de degradación y recomendación del Core.
+Compara escenarios de mantener sin acción, mantenimiento preventivo y reemplazo planificado, con degradación proyectada, valor proyectado, costo total estimado y prioridad.
+URL base usada en React
+javascript
+// Archivo .env.local
+VITE_API_URL=https://proyecto-calculo-degradacion-core.onrender.com
+// Archivo src/api/axiosConfig.js
+import axios from "axios";
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  timeout: 15000,
+});
+export default api;
+Pruebas funcionales
+Despliegue y evidencias
+Conclusiones
+El sistema fue mejorado de manera integral partiendo del Core MVC original de administración de equipos TI. La solución no solo agrega un API, sino que reorganiza la lógica principal del Core para que el sistema sea más mantenible y extensible.
+La aplicación de SRP permitió separar responsabilidades entre el controlador, el servicio, el repositorio y la estrategia de cálculo. La aplicación de OCP y del patrón Strategy permite que, en el futuro, se agreguen nuevas formas de calcular la degradación sin modificar el código ya existente. La aplicación de DIP permitió que DegradacionService dependa de interfaces (IEquipoRepository, ICalculoDegradacionStrategy) y no de implementaciones concretas.
+El API JSON y el aplicativo React permiten demostrar una integración externa real: el backend contiene la lógica del Core y React consume, analiza y presenta los resultados. Con estas mejoras se cumple el proceso de ingeniería solicitado: análisis del problema, alternativas de solución, diseño, implementación, pruebas e integración.
+Anexos de código relevante
+Strategy y Repository
+csharp
+public interface ICalculoDegradacionStrategy
+{
+    ResultadoDegradacionDto Calcular(Equipo equipo, List<Reparacion> reparaciones);
+}
+public class CalculoDegradacionPorReglasStrategy : ICalculoDegradacionStrategy
+{
+    public ResultadoDegradacionDto Calcular(Equipo equipo, List<Reparacion> reparaciones)
+    {
+        // Cálculo del porcentaje de uso, factores por tipo, estado y
+        // reparaciones, y generación del nivel, valor actual y recomendación.
+    }
+}
+Servicio refactorizado (coordinación mediante interfaces)
+csharp
+public class DegradacionService
+{
+    private readonly IEquipoRepository _equipoRepository;
+    private readonly ICalculoDegradacionStrategy _calculoDegradacionStrategy;
+    public DegradacionService(
+        IEquipoRepository equipoRepository,
+        ICalculoDegradacionStrategy calculoDegradacionStrategy)
+    {
+        _equipoRepository = equipoRepository;
+        _calculoDegradacionStrategy = calculoDegradacionStrategy;
+    }
+    public async Task<ResultadoDegradacionDto?> CalcularDegradacionAsync(int equipoId)
+    {
+        var equipo = await _equipoRepository.ObtenerEquipoPorIdAsync(equipoId);
+        if (equipo == null) return null;
+        var reparaciones = await _equipoRepository.ObtenerReparacionesPorEquipoAsync(equipoId);
+        return _calculoDegradacionStrategy.Calcular(equipo, reparaciones);
+    }
+}
+API JSON
+csharp
+[HttpGet("degradacion/{id}")]
+public async Task<IActionResult> CalcularDegradacion(int id)
+{
+    var resultado = await _degradacionService.CalcularDegradacionAsync(id);
+    if (resultado == null)
+        return NotFound(new { mensaje = "No se encontró el equipo solicitado." });
+    return Ok(resultado);
+}
