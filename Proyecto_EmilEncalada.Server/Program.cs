@@ -26,7 +26,10 @@ builder.Services.AddCors(options =>
                 "https://localhost:5176",
                 "https://localhost:5177",
                 "https://localhost:5178",
-                "https://proyecto-calculo-degradacion-core.vercel.app"
+                "https://proyecto-calculo-degradacion-core.vercel.app",
+                "https://proyecto-calculo-degradacion-core.vercel.app",
+
+                "https://api-core.vercel.app"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
@@ -45,12 +48,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-/*
-    Servicios aplicando buenas prácticas:
-    - Repository Pattern: IEquipoRepository / EquipoRepository
-    - Strategy Pattern: ICalculoDegradacionStrategy / CalculoDegradacionPorReglasStrategy
-    - DIP: DegradacionService depende de interfaces, no de clases concretas.
-*/
 builder.Services.AddScoped<IEquipoRepository, EquipoRepository>();
 builder.Services.AddScoped<ICalculoDegradacionStrategy, CalculoDegradacionPorReglasStrategy>();
 builder.Services.AddScoped<DegradacionService>();
