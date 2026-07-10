@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirFrontend", policy =>
     {
-        var origins = new[]
+        var allowedOrigins = new[]
         {
             "http://localhost:5173",
             "http://localhost:5174",
@@ -32,10 +32,20 @@ builder.Services.AddCors(options =>
             "https://localhost:5178",
             "https://proyecto-calculo-degradacion-core.vercel.app",
             "https://api-core.vercel.app"
-        }.Concat(frontendOrigins).Distinct().ToArray();
+        }.Concat(frontendOrigins).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 
         policy
-            .WithOrigins(origins)
+            .SetIsOriginAllowed(origin =>
+            {
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                {
+                    return false;
+                }
+
+                return allowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase)
+                    || uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+                    || uri.Host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase);
+            })
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
